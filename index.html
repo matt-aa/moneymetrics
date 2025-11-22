@@ -80,7 +80,55 @@ Create a folder and copy each section below into its file name.
 </form>
 </div>
 
-
+<!---This is the SupaBase Code--->
 <script type="module" src="app.js"></script>
 </body>
 </html>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  
+  // TODO: Replace with your real URL + anon key
+  const supabaseUrl = "https://hwuhzgkhnzvkevpqcarm.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3dWh6Z2tobnp2a2V2cHFjYXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4MjE1NTEsImV4cCI6MjA3OTM5NzU1MX0.vgFOJFN4DxXh98Mv7VmUwLW2BIkBaMctuoCbWOpyDVs";
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  window.supabase = supabase; // make it accessible in other scripts
+</script>
+
+<!---This is the SupaBase Code for writing to the DB--->
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+  const supabase = createClient(
+    "https://hwuhzgkhnzvkevpqcarm.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3dWh6Z2tobnp2a2V2cHFjYXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4MjE1NTEsImV4cCI6MjA3OTM5NzU1MX0.vgFOJFN4DxXh98Mv7VmUwLW2BIkBaMctuoCbWOpyDVs"
+  );
+
+  async function submitForm() {
+    const name = document.getElementById("name").value;
+    const message = document.getElementById("message").value;
+
+    // Insert into table "submissions"
+    const { error } = await supabase
+      .from("submissions")
+      .insert({
+        name: name,
+        message: message,
+        created_at: new Date().toISOString()
+      });
+
+    if (error) {
+      alert("Something went wrong!");
+      console.error(error);
+    } else {
+      alert("Thank you! Your message has been saved.");
+    }
+  }
+</script>
+
+<form onsubmit="submitForm(); return false;">
+  <input id="name" placeholder="Your name" required />
+  <textarea id="message" placeholder="Your message" required></textarea>
+  <button type="submit">Submit</button>
+</form>
