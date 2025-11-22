@@ -1,0 +1,86 @@
+<!--
+Project: Young People Finances (Vanilla JS + HTML + Supabase)
+This canvas contains ALL required files.
+Create a folder and copy each section below into its file name.
+-->
+
+
+<!-- ============================ -->
+<!-- File: index.html -->
+<!-- ============================ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Young People Finances</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="container">
+<h1>How well are you doing compared with other young people?</h1>
+<p>Enter your details below. Data will be stored in Supabase.</p>
+
+
+<form id="financeForm">
+<label>Age Range</label>
+<select name="age_range" required>
+<option value="">Choose your age range</option>
+<option>16-17</option>
+<option>18-24</option>
+<option>25-29</option>
+<option>30-34</option>
+<option>35-39</option>
+<option>40-44</option>
+<option>45-49</option>
+<option>50-54</option>
+<option>55-59</option>
+<option>60+</option>
+</select>
+
+
+<label>Postcode</label>
+<input name="postcode" placeholder="SW1A 1AA" required />
+
+
+<div class="grid">
+<div>
+<label>Salary (annual)</label>
+<input name="salary" placeholder="25000" />
+</div>
+<div>
+<label>Savings</label>
+<input name="savings" placeholder="2500" />
+</div>
+<div>
+<label>Debt</label>
+<input name="debt" placeholder="1200" />
+</div>
+</div>
+
+
+<div class="grid2">
+<div>
+<label>Mortgage/Rent (monthly)</label>
+<input name="mortgage_or_rent_monthly" placeholder="700" />
+</div>
+<div>
+<label>Property value</label>
+<input name="property_value" placeholder="200000" />
+</div>
+</div>
+
+
+<label>Notes</label>
+<textarea name="additional_notes" rows="3"></textarea>
+
+
+<button type="submit">Submit</button>
+<p id="message"></p>
+</form>
+</div>
+
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
