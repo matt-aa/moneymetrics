@@ -38,7 +38,6 @@ savings: toNumber(formData.get("savings")),
 debt: toNumber(formData.get("debt")),
 mortgage_or_rent_monthly: toNumber(formData.get("mortgage_or_rent_monthly")),
 property_value: toNumber(formData.get("property_value")),
-additional_notes: formData.get("additional_notes") || null,
 };
 
 

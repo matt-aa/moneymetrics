@@ -13,7 +13,6 @@ savings numeric,
 debt numeric,
 mortgage_or_rent_monthly numeric,
 property_value numeric,
-additional_notes text
 );
 
 
