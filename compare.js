@@ -64,12 +64,6 @@ function createDotPlot(userValues, avgValues) {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        y: {
-          type: "category",
-          labels,
-          offset: true,
-          grid: { display: false }
-        },
         x: {
           title: { display: true, text: "Value (£)" },
           ticks: {
@@ -78,6 +72,12 @@ function createDotPlot(userValues, avgValues) {
           grid: {
             color: "#F3F4F6"
           }
+        },
+        y: {
+          type: "category",
+          labels,
+          offset: true,
+          grid: { display: false }
         }
       },
       plugins: {

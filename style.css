@@ -43,7 +43,7 @@ body {
   margin-bottom: 8px;
 }
 
-/* --- NEW DOT PLOT CHART HEIGHT --- */
+/* Dot Plot Chart */
 #dotPlotChart {
   width: 100% !important;
   height: 350px !important;     /* fixed consistent height */
