@@ -11,7 +11,8 @@ postcode text,
 salary numeric,
 savings numeric,
 debt numeric,
-mortgage_or_rent_monthly numeric,
+mortgage numeric,
+rent numeric,
 property_value numeric,
 );
 
