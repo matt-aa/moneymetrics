@@ -1,118 +1,42 @@
-<!--
-Project: Young People Finances (Vanilla JS + HTML + Supabase)
-This canvas contains ALL required files.
-Create a folder and copy each section below into its file name.
--->
-
-
-<!-- ============================ -->
-<!-- File: index.html -->
-<!-- ============================ -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Young People Finances</title>
-<link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-<div class="container">
-<h1>How well are you doing compared with other young people?</h1>
-<p>Enter your details below. Data will be stored in Supabase.</p>
-
-
-<form id="financeForm">
-<label>Age Range</label>
-<select name="age_range" required>
-<option value="">Choose your age range</option>
-<option>16-17</option>
-<option>18-24</option>
-<option>25-29</option>
-<option>30-34</option>
-<option>35-39</option>
-<option>40-44</option>
-<option>45-49</option>
-<option>50-54</option>
-<option>55-59</option>
-<option>60+</option>
-</select>
-
-
-<label>Postcode</label>
-<input name="postcode" placeholder="SW1A 1AA" required />
-
-
-<div class="grid">
-<div>
-<label>Salary (annual)</label>
-<input name="salary" placeholder="25000" />
-</div>
-<div>
-<label>Savings</label>
-<input name="savings" placeholder="2500" />
-</div>
-<div>
-<label>Debt</label>
-<input name="debt" placeholder="1200" />
-</div>
-</div>
-
-
-<div class="grid2">
-<div>
-<label>Mortgage/Rent (monthly)</label>
-<input name="mortgage_or_rent_monthly" placeholder="700" />
-</div>
-<div>
-<label>Property value</label>
-<input name="property_value" placeholder="200000" />
-</div>
-</div>
-
-
-<button type="submit">Submit</button>
-<p id="message"></p>
-</form>
-</div>
-
-<!---This is the SupaBase Code--->
-<script type="module" src="app.js"></script>
-</body>
-</html>
-
 <script type="module">
   import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-  
-  // TODO: Replace with your real URL + anon key
+
+  // Supabase credentials
   const supabaseUrl = "https://hwuhzgkhnzvkevpqcarm.supabase.co";
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3dWh6Z2tobnp2a2V2cHFjYXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4MjE1NTEsImV4cCI6MjA3OTM5NzU1MX0.vgFOJFN4DxXh98Mv7VmUwLW2BIkBaMctuoCbWOpyDVs";
+
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  window.supabase = supabase; // make it accessible in other scripts
-</script>
+  const form = document.getElementById("financeForm");
+  const message = document.getElementById("message");
 
-<!---This is the SupaBase Code for writing to the DB--->
-<script type="module">
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  const supabase = createClient(
-    "https://hwuhzgkhnzvkevpqcarm.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3dWh6Z2tobnp2a2V2cHFjYXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4MjE1NTEsImV4cCI6MjA3OTM5NzU1MX0.vgFOJFN4DxXh98Mv7VmUwLW2BIkBaMctuoCbWOpyDVs"
-  );
+    const formData = Object.fromEntries(new FormData(form).entries());
 
+    // Convert number fields (Supabase hates strings in numeric columns)
+    ["salary","savings","debt","mortgage_or_rent_monthly","property_value"].forEach(key => {
+      if (formData[key] === "") formData[key] = null;
+      else formData[key] = Number(formData[key]);
+    });
 
-    // Insert into table "submissions"
-    const { error } = await supabase
+    // Add a timestamp
+    formData.created_at = new Date().toISOString();
+
+    // INSERT INTO SUPABASE
+    const { data, error } = await supabase
       .from("submissions")
-        created_at: new Date().toISOString()
-      });
+      .insert([formData]);
 
     if (error) {
-      alert("Something went wrong!");
       console.error(error);
+      message.textContent = "❌ Something went wrong (check console).";
+      message.style.color = "red";
     } else {
-      alert("Thank you! Your message has been saved.");
+      message.textContent = "✅ Thank you! Your submission has been saved.";
+      message.style.color = "green";
+      form.reset();
     }
-  }
+  });
 </script>
