@@ -32,7 +32,7 @@ form.addEventListener("submit", async (e) => {
 
   // Insert into Supabase
   const { data, error } = await supabase
-    .from("young_people_finances")
+    .from("Submissions")
     .insert([formData]);
 
   if (error) {
