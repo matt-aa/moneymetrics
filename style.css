@@ -43,37 +43,12 @@ body {
   margin-bottom: 8px;
 }
 
-/* Charts grid */
-.charts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
-}
-
-/* Chart cards */
-.chart-card {
-  padding: 12px;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #ffffff, #fbfcfe);
-  display: flex;
-  flex-direction: column;
-  min-height: 160px;
-}
-
-/* chart canvas sizing */
-.chart-card canvas { width: 100% !important; height: 140px !important; }
-
+/* --- NEW DOT PLOT CHART HEIGHT --- */
 #dotPlotChart {
   width: 100% !important;
-  height: 350px !important;   /* ← set your fixed height */
+  height: 350px !important;     /* fixed consistent height */
   max-height: 350px !important;
   display: block;
-}
-
-.chart-card {
-  padding: 16px;
-  background: white;
-  border-radius: 14px;
 }
 
 /* detail grid */
@@ -121,13 +96,26 @@ body {
 }
 .share-card button:hover { opacity: .95; }
 
-/* actions */
-.actions { margin-top: 10px; display:flex; justify-content:flex-start; }
-.actions button { background: #fff; color:#111827; border:1px solid #e5e7eb; padding:10px 12px; border-radius:8px; }
+.share-text {
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 8px;
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+
+/* Back button */
+.back-btn {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+}
 
 /* responsive tweaks */
 @media (max-width: 640px) {
   .container { padding: 16px; }
   .health-score { font-size: 22px; }
-  .chart-card canvas { height: 120px !important; }
+  #dotPlotChart { height: 280px !important; }
 }
