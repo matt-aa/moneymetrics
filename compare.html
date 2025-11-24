@@ -1,22 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>How You Compare</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Financial Comparison</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
+
 <div class="container">
   <h1>Your Financial Comparison</h1>
-  <p>This page compares your submission with the average of all users.</p>
+  <p>Here’s how you compare to other young people based on the data collected.</p>
 
-  <div id="results"></div>
+  <div id="results" class="results-card">
+    <p>Loading comparison...</p>
+  </div>
 
-  <a href="index.html">← Back to form</a>
+  <button onclick="window.location.href='index.html'">Back to Form</button>
 </div>
 
 <script type="module" src="compare.js"></script>
+
 </body>
 </html>

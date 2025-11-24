@@ -36,12 +36,11 @@ form.addEventListener("submit", async (e) => {
     .insert([formData]);
 
   if (error) {
-    console.error(error);
-    message.textContent = "❌ Something went wrong — see console.";
-    message.style.color = "red";
-  } else {
-    message.textContent = "✅ Thank you! Your submission has been saved.";
-    message.style.color = "green";
-    form.reset();
-  }
+  console.error(error);
+  message.textContent = "❌ Something went wrong — see console.";
+  message.style.color = "red";
+} else {
+  localStorage.setItem("latest_submission", JSON.stringify(formData));
+  window.location.href = "compare.html";
+}
 });
