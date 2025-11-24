@@ -1,55 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Your Financial Comparison</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
-  <div class="container compare-page">
-    <header class="top">
-      <h1>Your Financial Comparison</h1>
-      <p class="muted">How you compare to other young people based on submissions</p>
-    </header>
+<div class="container compare-page">
+  <header class="top">
+    <h1>Your Financial Comparison</h1>
+    <p class="muted">See how your finances compare to other young people</p>
+  </header>
 
-    <main>
-      <section id="summary" class="card">
-        <h2>Summary</h2>
-        <div id="healthScore" class="health-score">Loading...</div>
-        <p id="healthText" class="muted"></p>
-      </section>
+  <section class="card">
+    <h2>Overall Financial Health</h2>
+    <div id="healthScore" class="health-score">Loading...</div>
+    <p id="healthText" class="muted"></p>
+  </section>
 
-      <section id="charts" class="card charts-grid">
-        <!-- charts will be injected here -->
-      </section>
+  <section class="card">
+    <h2>Your Position vs Average</h2>
+    <canvas id="dotPlotChart" height="400"></canvas>
+  </section>
 
-      <section id="details" class="card">
-        <h2>Detailed comparison</h2>
-        <div id="results" class="results-card">
-          <p>Loading comparison...</p>
-        </div>
-      </section>
+  <section id="details" class="card">
+    <h2>Details</h2>
+    <div id="results"></div>
+  </section>
 
-      <section id="shareCard" class="card share-card">
-        <h2>Share your results</h2>
-        <p id="shareText">Ready to share</p>
-        <div class="share-actions">
-          <button id="copyBtn">Copy</button>
-          <button id="nativeShareBtn">Share</button>
-        </div>
-      </section>
+  <section class="card share-card">
+    <h2>Share Your Results</h2>
+    <pre id="shareText" class="share-text"></pre>
+    <div class="share-actions">
+      <button id="copyBtn">Copy</button>
+      <button id="nativeShareBtn">Share</button>
+    </div>
+  </section>
 
-      <div class="actions">
-        <button id="backButton">← Back to form</button>
-      </div>
-    </main>
-  </div>
+  <button id="backButton" class="back-btn">← Back to form</button>
+</div>
 
-  <!-- Chart.js (global) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Our module script -->
-  <script type="module" src="compare.js"></script>
+<!-- Compare Logic -->
+<script type="module" src="compare.js"></script>
+
 </body>
 </html>
+
