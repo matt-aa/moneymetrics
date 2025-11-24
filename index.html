@@ -108,9 +108,6 @@ Create a folder and copy each section below into its file name.
     // Insert into table "submissions"
     const { error } = await supabase
       .from("submissions")
-      .insert({
-        name: name,
-        message: message,
         created_at: new Date().toISOString()
       });
 
