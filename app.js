@@ -45,4 +45,3 @@ form.addEventListener("submit", async (e) => {
     form.reset();
   }
 });
-
