@@ -36,7 +36,8 @@ postcode: formData.get("postcode").trim().toUpperCase(),
 salary: toNumber(formData.get("salary")),
 savings: toNumber(formData.get("savings")),
 debt: toNumber(formData.get("debt")),
-mortgage_or_rent_monthly: toNumber(formData.get("mortgage_or_rent_monthly")),
+mortgage: toNumber(formData.get("mortgage")),
+rent: toNumber(formData.get("rent"))
 property_value: toNumber(formData.get("property_value")),
 };
 
