@@ -1,8 +1,3 @@
-<!-- ============================ -->
-<!-- File: create_table.sql -->
-<!-- ============================ -->
-
-
 CREATE TABLE public.young_people_finances (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   created_at timestamptz DEFAULT now(),
@@ -16,7 +11,12 @@ CREATE TABLE public.young_people_finances (
   property_value numeric
 );
 
+-- IMPORTANT: Allow inserts from your website
+ALTER TABLE public.young_people_finances
+  ENABLE ROW LEVEL SECURITY;
 
-
--- Turn OFF RLS for testing (optional)
--- ALTER TABLE public.young_people_finances DISABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow anon inserts"
+ON public.young_people_finances
+FOR INSERT
+TO anon
+WITH CHECK (true);

@@ -1,61 +1,48 @@
-<!-- ============================ -->
-<!-- File: app.js -->
-<!-- ============================ -->
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-
-// IMPORTANT: replace with your Supabase credentials
-const supabaseUrl = "YOUR_SUPABASE_URL";
-const supabaseKey = "YOUR_SUPABASE_ANON_KEY";
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-
-// Utility to parse numbers safely
-function toNumber(value) {
-if (!value) return null;
-const num = Number(String(value).replace(/[^0-9.-]/g, ""));
-return Number.isFinite(num) ? num : null;
-}
-
+// Your Supabase details
+const supabase = createClient(
+  "https://hwuhzgkhnzvkevpqcarm.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3dWh6Z2tobnp2a2V2cHFjYXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4MjE1NTEsImV4cCI6MjA3OTM5NzU1MX0.vgFOJFN4DxXh98Mv7VmUwLW2BIkBaMctuoCbWOpyDVs"
+);
 
 const form = document.getElementById("financeForm");
-const messageBox = document.getElementById("message");
-
+const message = document.getElementById("message");
 
 form.addEventListener("submit", async (e) => {
-e.preventDefault();
-messageBox.textContent = "";
+  e.preventDefault();
 
+  const formData = Object.fromEntries(new FormData(form));
 
-const formData = new FormData(form);
+  // Convert numeric fields
+  const numericFields = [
+    "salary",
+    "savings",
+    "debt",
+    "mortgage",
+    "rent",
+    "property_value"
+  ];
 
+  numericFields.forEach(field => {
+    formData[field] = formData[field] ? Number(formData[field]) : null;
+  });
 
-const payload = {
-age_range: formData.get("age_range"),
-postcode: formData.get("postcode").trim().toUpperCase(),
-salary: toNumber(formData.get("salary")),
-savings: toNumber(formData.get("savings")),
-debt: toNumber(formData.get("debt")),
-mortgage: toNumber(formData.get("mortgage")),
-rent: toNumber(formData.get("rent"))
-property_value: toNumber(formData.get("property_value")),
-};
+  formData.created_at = new Date().toISOString();
 
+  // Insert into Supabase
+  const { data, error } = await supabase
+    .from("young_people_finances")
+    .insert([formData]);
 
-messageBox.textContent = "Saving...";
-
-
-const { error } = await supabase
-.from("young_people_finances")
-.insert([payload]);
-
-
-if (error) {
-messageBox.style.color = "red";
-messageBox.textContent = "Error: " + error.message;
-} else {
-messageBox.style.color = "green";
-messageBox.textContent = "Submission saved successfully!";
-form.reset();
-}
+  if (error) {
+    console.error(error);
+    message.textContent = "❌ Something went wrong — see console.";
+    message.style.color = "red";
+  } else {
+    message.textContent = "✅ Thank you! Your submission has been saved.";
+    message.style.color = "green";
+    form.reset();
+  }
 });
+
