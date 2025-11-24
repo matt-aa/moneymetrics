@@ -1,26 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Your Financial Comparison</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
+  <div class="container compare-page">
+    <header class="top">
+      <h1>Your Financial Comparison</h1>
+      <p class="muted">How you compare to other young people based on submissions</p>
+    </header>
 
-<div class="container">
-  <h1>Your Financial Comparison</h1>
-  <p>Here’s how you compare to other young people based on the data collected.</p>
+    <main>
+      <section id="summary" class="card">
+        <h2>Summary</h2>
+        <div id="healthScore" class="health-score">Loading...</div>
+        <p id="healthText" class="muted"></p>
+      </section>
 
-  <div id="results" class="results-card">
-    <p>Loading comparison...</p>
+      <section id="charts" class="card charts-grid">
+        <!-- charts will be injected here -->
+      </section>
+
+      <section id="details" class="card">
+        <h2>Detailed comparison</h2>
+        <div id="results" class="results-card">
+          <p>Loading comparison...</p>
+        </div>
+      </section>
+
+      <section id="shareCard" class="card share-card">
+        <h2>Share your results</h2>
+        <p id="shareText">Ready to share</p>
+        <div class="share-actions">
+          <button id="copyBtn">Copy</button>
+          <button id="nativeShareBtn">Share</button>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button id="backButton">← Back to form</button>
+      </div>
+    </main>
   </div>
 
-  <button onclick="window.location.href='index.html'">Back to Form</button>
-</div>
+  <!-- Chart.js (global) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<script type="module" src="compare.js"></script>
-
+  <!-- Our module script -->
+  <script type="module" src="compare.js"></script>
 </body>
 </html>
