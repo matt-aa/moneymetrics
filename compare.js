@@ -38,14 +38,18 @@ function createDotPlot(userValues, avgValues) {
 
   const labels = METRICS.map(m => m.label);
 
-  const userData = METRICS.map(m => ({
-    x: m.label,
-    y: userValues[m.key]
-  }));
+  const userPercent = METRICS.map(m => {
+    const avg = avgValues[`avg_${m.key}`] || 1;
+    const user = userValues[m.key] || 0;
+    return {
+      x: m.label,
+      y: (user / avg) * 100   // percentage of average
+    };
+  });
 
-  const avgData = METRICS.map(m => ({
+  const avgPercent = METRICS.map(m => ({
     x: m.label,
-    y: avgValues[`avg_${m.key}`]
+    y: 100    // always 100% for averages
   }));
 
   new Chart(ctx, {
@@ -54,17 +58,17 @@ function createDotPlot(userValues, avgValues) {
       labels,
       datasets: [
         {
-          label: "Average",
-          data: avgData,
+          label: "Average (100%)",
+          data: avgPercent,
           pointRadius: 8,
-          pointBackgroundColor: "#D1D5DB", // grey
+          pointBackgroundColor: "#D1D5DB",
           pointHoverRadius: 10
         },
         {
           label: "You",
-          data: userData,
+          data: userPercent,
           pointRadius: 10,
-          pointBackgroundColor: "#F59E0B", // orange
+          pointBackgroundColor: "#F59E0B",
           pointBorderWidth: 2,
           pointBorderColor: "#B45309",
           pointHoverRadius: 12
@@ -74,33 +78,39 @@ function createDotPlot(userValues, avgValues) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+
       scales: {
         x: {
           type: "category",
           labels,
-          title: {
-            display: true,
-            text: "Metric"
-          },
+          title: { display: true, text: "Metric" },
           grid: { display: false }
         },
+
         y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: "Value (£)"
-          },
+          beginAtZero: false,
+
+          /** ★★★ INVERTED AXIS ★★★ **/
+          reverse: true,
+
+          title: { display: true, text: "% of Average (Inverted)" },
+
           ticks: {
-            callback: v => "£" + v.toLocaleString()
-          }
+            callback: v => v + "%"
+          },
+
+          /** Suggest a useful range **/
+          suggestedMin: 200,
+          suggestedMax: 0
         }
       },
+
       plugins: {
         legend: { display: true },
+
         tooltip: {
           callbacks: {
-            label: ctx =>
-              `${ctx.dataset.label}: £${ctx.parsed.y.toLocaleString()}`
+            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%`
           }
         }
       }
@@ -108,21 +118,6 @@ function createDotPlot(userValues, avgValues) {
   });
 }
 
-// -------------------------------
-// Render the page
-// -------------------------------
-async function render() {
-  const avg = await fetchAverages();
-
-  const userVals = {};
-  const avgVals = {};
-
-  METRICS.forEach(m => {
-    userVals[m.key] = Number(user[m.key]) || 0;
-    avgVals[`avg_${m.key}`] = Number(avg[`avg_${m.key}`]) || 0;
-  });
-
-  createDotPlot(userVals, avgVals);
 
   // Summary numbers
   const resultsBox = document.getElementById("results");
