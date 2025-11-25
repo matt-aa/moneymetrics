@@ -132,38 +132,73 @@ if (grid.children.length === 0) {
 
 
   // fill details and health score
-  fillDetailsAndScore(avg);
-  prepareShare(avg);
-}
-
-// Fill the details text and compute a simple health score
-function fillDetailsAndScore(avg) {
+  function fillDetailsAndScore(avg) {
   const resultsBox = document.getElementById("results");
   resultsBox.innerHTML = METRICS.map(m => `
       <p><strong>${m.label}:</strong> You: £${(Number(user[m.key])||0).toLocaleString()} — Avg: £${(Number(avg[`avg_${m.key}`])||0).toLocaleString()}</p>
   `).join("");
 
-  // Simple weighted health score example
-  const weights = { salary: 0.3, savings: 0.2, debt: 0.2, mortgage: 0.1, rent: 0.1, property_value: 0.1 };
-  let sum = 0, totalW = 0;
-  METRICS.forEach(m => {
-    const u = Number(user[m.key]) || 0;
-    const a = Number(avg[`avg_${m.key}`]) || 0;
-    if (a > 0) {
-      let pct = (u / a) * 100;
-      // For debt/mortgage/rent lower is better -> invert
-      if (["debt","mortgage","rent"].includes(m.key)) pct = 200 - pct; // rough invert so lower debt gives higher score
-      const w = weights[m.key] || 0.1;
-      sum += Math.max(0, Math.min(200, pct)) * w;
-      totalW += w;
+  const weights = { 
+    salary: 0.35, 
+    savings: 0.25, 
+    debt: 0.20,
+    mortgage: 0.10,
+    rent: 0.10
+  };
+
+  let sum = 0;
+  let totalW = 0;
+
+  function applyScore(key) {
+    const u = Number(user[key]) || 0;
+    const a = Number(avg[`avg_${key}`]) || 0;
+    if (u === 0 || a === 0) return; // user didn't enter a value
+
+    let pct = (u / a) * 100;
+
+    // invert for negative metrics
+    if (["debt", "rent", "mortgage"].includes(key)) {
+      pct = 200 - pct;
     }
-  });
+
+    const clamped = Math.max(0, Math.min(200, pct));
+    sum += clamped * weights[key];
+    totalW += weights[key];
+  }
+
+  // Always apply salary/savings/debt
+  applyScore("salary");
+  applyScore("savings");
+  applyScore("debt");
+
+  // Apply *either* rent or mortgage
+  if (Number(user.mortgage) > 0) {
+    applyScore("mortgage");
+  } else if (Number(user.rent) > 0) {
+    applyScore("rent");
+  }
+
   const health = totalW ? Math.round(sum / totalW) : null;
+
   const healthBox = document.getElementById("healthScore");
   const healthText = document.getElementById("healthText");
-  healthBox.textContent = health ? `${health}/100` : "—";
-  healthText.textContent = health ? (health >= 70 ? "You're above the average overall." : health >= 45 ? "Close to average — some room to improve." : "Below average — consider reviewing budgets.") : "";
+
+  if (health !== null) {
+    healthBox.textContent = `${health}/100`;
+
+    if (health >= 70) {
+      healthText.textContent = "You're above the average overall.";
+    } else if (health >= 45) {
+      healthText.textContent = "Close to average — some room to improve.";
+    } else {
+      healthText.textContent = "Below average — consider reviewing budgets.";
+    }
+  } else {
+    healthBox.textContent = "—";
+    healthText.textContent = "Enter more values to generate a score.";
+  }
 }
+
 
 // Share summary
 function prepareShare(avg) {

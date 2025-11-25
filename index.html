@@ -67,5 +67,32 @@
 </div>
 
 <script type="module" src="app.js"></script> 
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const rentInput = document.querySelector("input[name='rent']");
+  const mortgageInput = document.querySelector("input[name='mortgage']");
+
+  function updateFields() {
+    if (rentInput.value.trim() !== "") {
+      mortgageInput.disabled = true;
+      mortgageInput.value = "";
+    } else {
+      mortgageInput.disabled = false;
+    }
+
+    if (mortgageInput.value.trim() !== "") {
+      rentInput.disabled = true;
+      rentInput.value = "";
+    } else {
+      rentInput.disabled = false;
+    }
+  }
+
+  rentInput.addEventListener("input", updateFields);
+  mortgageInput.addEventListener("input", updateFields);
+});
+</script>
+
 </body> 
 </html>
