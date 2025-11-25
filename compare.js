@@ -8,7 +8,6 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Colors: Option 1 (Mint + Blue)
 const COLOR_USER = "#4ADE80"; // mint
 const COLOR_AVG = "#60A5FA";  // blue
 
@@ -22,23 +21,23 @@ const METRICS = [
   { key: "property_value", label: "Property value" }
 ];
 
-// Load latest submission from localStorage
+// Load latest submission
 const user = JSON.parse(localStorage.getItem("latest_submission"));
 if (!user) {
-  document.getElementById("results").innerHTML = "<p>No recent submission found. Please submit the form first.</p>";
+  document.getElementById("results").innerHTML =
+    "<p>No recent submission found. Please submit the form first.</p>";
   throw new Error("No latest_submission in localStorage");
 }
 
-// RPC to get averages: get_finance_averages()
+// RPC
 async function fetchAverages() {
   const { data, error } = await supabase.rpc("get_finance_averages");
   if (error) throw error;
   return Array.isArray(data) ? data[0] : data;
 }
 
-// Helper to create a single small bar chart for one metric
+// Mini chart
 function createMiniChart(containerEl, id, label, userValue, avgValue) {
-  // inject canvas
   containerEl.innerHTML = `
     <div class="mini-card">
       <div class="mini-header">
@@ -51,17 +50,15 @@ function createMiniChart(containerEl, id, label, userValue, avgValue) {
 
   const ctx = containerEl.querySelector("canvas").getContext("2d");
 
-  // determine max for y scale (give some headroom)
   const max = Math.max(userValue || 0, avgValue || 0);
-  const suggestedMax = Math.max( (Math.ceil(max / 1000) * 1000) , max) * 1.15 || 1;
+  const suggestedMax = Math.max((Math.ceil(max / 1000) * 1000), max) * 1.15 || 1;
 
-  // Create bar chart with two bars (You, Avg)
   new Chart(ctx, {
     type: "bar",
     data: {
       labels: ["You", "Average"],
       datasets: [{
-        label: label,
+        label,
         data: [userValue || 0, avgValue || 0],
         backgroundColor: [COLOR_USER, COLOR_AVG],
         borderRadius: 8,
@@ -82,15 +79,12 @@ function createMiniChart(containerEl, id, label, userValue, avgValue) {
         }
       },
       scales: {
-        x: {
-          grid: { display: false },
-          ticks: { display: false } // hide X ticks to mimic small cards
-        },
+        x: { grid: { display: false }, ticks: { display: false } },
         y: {
           beginAtZero: true,
           suggestedMax,
           ticks: {
-            callback: v => (v >= 1000 ? "£" + (v/1000) + "k" : "£" + v)
+            callback: v => (v >= 1000 ? "£" + (v / 1000) + "k" : "£" + v)
           },
           grid: { color: "#EEF2FF" }
         }
@@ -99,43 +93,16 @@ function createMiniChart(containerEl, id, label, userValue, avgValue) {
   });
 }
 
-// Build the grid of six mini-charts
-async function buildCharts() {
-  const avg = await fetchAverages();
-
-  const grid = document.getElementById("chartsGrid");
-  grid.innerHTML = ""; // clear
-
-METRICS.forEach(m => {
-  const rawUserVal = user[m.key];
-
-  // Skip if user left it blank, null, undefined, or non-numeric
-  if (rawUserVal === "" || rawUserVal === null || rawUserVal === undefined || isNaN(rawUserVal)) {
-    return;
-  }
-
-  const col = document.createElement("div");
-  col.className = "chart-cell";
-  const canvasId = `miniChart_${m.key}`;
-
-  const userVal = Number(user[m.key]);
-  const avgVal = Number(avg[`avg_${m.key}`]) || 0;
-
-  createMiniChart(col, canvasId, m.label, userVal, avgVal);
-
-  grid.appendChild(col);
-});
-
-if (grid.children.length === 0) {
-  grid.innerHTML = "<p class='muted'>No comparison data available — you did not enter any financial values.</p>";
-}
-
-
-  // fill details and health score
-  function fillDetailsAndScore(avg) {
+// -------------------
+// Fill summary + score
+// -------------------
+function fillDetailsAndScore(avg) {
   const resultsBox = document.getElementById("results");
   resultsBox.innerHTML = METRICS.map(m => `
-      <p><strong>${m.label}:</strong> You: £${(Number(user[m.key])||0).toLocaleString()} — Avg: £${(Number(avg[`avg_${m.key}`])||0).toLocaleString()}</p>
+      <p><strong>${m.label}:</strong> 
+        You: £${(Number(user[m.key]) || 0).toLocaleString()} — 
+        Avg: £${(Number(avg[`avg_${m.key}`]) || 0).toLocaleString()}
+      </p>
   `).join("");
 
   const weights = { 
@@ -152,31 +119,22 @@ if (grid.children.length === 0) {
   function applyScore(key) {
     const u = Number(user[key]) || 0;
     const a = Number(avg[`avg_${key}`]) || 0;
-    if (u === 0 || a === 0) return; // user didn't enter a value
+    if (u === 0 || a === 0) return;
 
     let pct = (u / a) * 100;
-
-    // invert for negative metrics
-    if (["debt", "rent", "mortgage"].includes(key)) {
-      pct = 200 - pct;
-    }
+    if (["debt", "rent", "mortgage"].includes(key)) pct = 200 - pct;
 
     const clamped = Math.max(0, Math.min(200, pct));
     sum += clamped * weights[key];
     totalW += weights[key];
   }
 
-  // Always apply salary/savings/debt
   applyScore("salary");
   applyScore("savings");
   applyScore("debt");
 
-  // Apply *either* rent or mortgage
-  if (Number(user.mortgage) > 0) {
-    applyScore("mortgage");
-  } else if (Number(user.rent) > 0) {
-    applyScore("rent");
-  }
+  if (Number(user.mortgage) > 0) applyScore("mortgage");
+  else if (Number(user.rent) > 0) applyScore("rent");
 
   const health = totalW ? Math.round(sum / totalW) : null;
 
@@ -186,21 +144,18 @@ if (grid.children.length === 0) {
   if (health !== null) {
     healthBox.textContent = `${health}/100`;
 
-    if (health >= 70) {
-      healthText.textContent = "You're above the average overall.";
-    } else if (health >= 45) {
-      healthText.textContent = "Close to average — some room to improve.";
-    } else {
-      healthText.textContent = "Below average — consider reviewing budgets.";
-    }
+    if (health >= 70) healthText.textContent = "You're above the average overall.";
+    else if (health >= 45) healthText.textContent = "Close to average — some room to improve.";
+    else healthText.textContent = "Below average — consider reviewing budgets.";
   } else {
     healthBox.textContent = "—";
     healthText.textContent = "Enter more values to generate a score.";
   }
 }
 
-
-// Share summary
+// ----------------------
+// Sharing functionality
+// ----------------------
 function prepareShare(avg) {
   const shareTextEl = document.getElementById("shareText");
   const copyBtn = document.getElementById("copyBtn");
@@ -208,7 +163,7 @@ function prepareShare(avg) {
 
   const lines = METRICS.map(m => {
     const u = Number(user[m.key]) || 0;
-    const a = Math.round(Number(avg[`avg_${m.key}`])||0);
+    const a = Math.round(Number(avg[`avg_${m.key}`]) || 0);
     return `${m.label}: You £${u.toLocaleString()} • Avg £${a.toLocaleString()}`;
   });
 
@@ -219,21 +174,55 @@ function prepareShare(avg) {
     try {
       await navigator.clipboard.writeText(txt);
       copyBtn.textContent = "Copied!";
-      setTimeout(()=> copyBtn.textContent = "Copy", 1400);
-    } catch (e) {
-      alert("Copy failed — please copy manually.");
+      setTimeout(() => (copyBtn.textContent = "Copy"), 1400);
+    } catch {
+      alert("Copy failed — copy manually.");
     }
   };
 
   nativeShareBtn.onclick = async () => {
     if (navigator.share) {
-      try {
-        await navigator.share({ title: "My Financial Comparison", text: txt, url: window.location.href });
-      } catch (e) { /* ignore cancel */ }
+      await navigator.share({ title: "My Financial Comparison", text: txt });
     } else {
-      alert("Share not supported — use Copy instead.");
+      alert("Share not supported.");
     }
   };
+}
+
+// ----------------------
+// Build all mini-charts
+// ----------------------
+async function buildCharts() {
+  const avg = await fetchAverages();
+
+  const grid = document.getElementById("chartsGrid");
+  grid.innerHTML = "";
+
+  METRICS.forEach(m => {
+    const rawUserVal = user[m.key];
+    if (rawUserVal === "" || rawUserVal === null || rawUserVal === undefined || isNaN(rawUserVal)) {
+      return;
+    }
+
+    const col = document.createElement("div");
+    col.className = "chart-cell";
+    const canvasId = `miniChart_${m.key}`;
+
+    const userVal = Number(user[m.key]);
+    const avgVal = Number(avg[`avg_${m.key}`]) || 0;
+
+    createMiniChart(col, canvasId, m.label, userVal, avgVal);
+
+    grid.appendChild(col);
+  });
+
+  if (grid.children.length === 0) {
+    grid.innerHTML =
+      "<p class='muted'>No comparison data — you did not enter any numbers.</p>";
+  }
+
+  fillDetailsAndScore(avg);
+  prepareShare(avg);
 }
 
 // Back button
@@ -241,8 +230,9 @@ document.getElementById("backButton").onclick = () => {
   window.location.href = "index.html";
 };
 
-// Initialize
+// Init
 buildCharts().catch(err => {
   console.error("Failed to build charts", err);
-  document.getElementById("results").innerHTML = "<p>Error loading comparison — check console.</p>";
+  document.getElementById("results").innerHTML =
+    "<p>Error loading comparison — check console.</p>";
 });
