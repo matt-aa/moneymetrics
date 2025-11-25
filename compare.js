@@ -31,31 +31,73 @@ async function fetchAverages() {
 }
 
 // Render dot plot
-function createDotPlot(userValues, avgValues) {
+ffunction createDotPlot(userValues, avgValues) {
   const ctx = document.getElementById("dotPlotChart").getContext("2d");
 
   const labels = METRICS.map(m => m.label);
-  const userData = METRICS.map(m => userValues[m.key] ?? null);
-  const avgData = METRICS.map(m => avgValues[`avg_${m.key}`] ?? null);
+  const userData = METRICS.map((m, i) => ({ x: m.label, y: userValues[m.key] }));
+  const avgData = METRICS.map((m, i) => ({ x: m.label, y: avgValues[`avg_${m.key}`] }));
 
-  const datasets = [
-    {
-      label: "Average",
-      data: METRICS.map((m, i) => ({ x: avgData[i], y: i })),
-      pointRadius: 8,
-      pointBackgroundColor: "#D1D5DB", // grey
-      pointHoverRadius: 10,
+  new Chart(ctx, {
+    type: "scatter",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Average",
+          data: avgData,
+          pointRadius: 8,
+          pointBackgroundColor: "#D1D5DB", // grey
+          pointHoverRadius: 10,
+          showLine: false
+        },
+        {
+          label: "You",
+          data: userData,
+          pointRadius: 10,
+          pointBackgroundColor: "#F59E0B", // orange
+          pointBorderWidth: 2,
+          pointBorderColor: "#B45309",
+          pointHoverRadius: 12,
+          showLine: false
+        }
+      ]
     },
-    {
-      label: "You",
-      data: METRICS.map((m, i) => ({ x: userData[i], y: i })),
-      pointRadius: 10,
-      pointBackgroundColor: "#F59E0B", // orange
-      pointBorderWidth: 2,
-      pointBorderColor: "#B45309",
-      pointHoverRadius: 12,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+
+      scales: {
+        x: {
+          type: "category",
+          labels,
+          title: { display: true, text: "Metric" },
+          grid: { display: false }
+        },
+        y: {
+          type: "linear",
+          beginAtZero: true,
+          title: { display: true, text: "Value (£)" },
+          ticks: {
+            callback: v => "£" + v.toLocaleString()
+          },
+          grid: { color: "#E5E7EB" }
+        }
+      },
+
+      plugins: {
+        legend: { display: true },
+        tooltip: {
+          callbacks: {
+            label: ctx =>
+              `${ctx.dataset.label}: £${ctx.parsed.y.toLocaleString()}`
+          }
+        }
+      }
     }
-  ];
+  });
+}
+
 
   new Chart(ctx, {
     type: "scatter",
