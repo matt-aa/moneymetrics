@@ -106,20 +106,30 @@ async function buildCharts() {
   const grid = document.getElementById("chartsGrid");
   grid.innerHTML = ""; // clear
 
-  METRICS.forEach((m, i) => {
-    // container for each mini card
-    const col = document.createElement("div");
-    col.className = "chart-cell";
-    const canvasId = `miniChart_${m.key}`;
+METRICS.forEach(m => {
+  const rawUserVal = user[m.key];
 
-    const userVal = Number(user[m.key]) || 0;
-    const avgVal = Number(avg[`avg_${m.key}`]) || 0;
+  // Skip if user left it blank, null, undefined, or non-numeric
+  if (rawUserVal === "" || rawUserVal === null || rawUserVal === undefined || isNaN(rawUserVal)) {
+    return;
+  }
 
-    // create the chart in this cell
-    createMiniChart(col, canvasId, m.label, userVal, avgVal);
+  const col = document.createElement("div");
+  col.className = "chart-cell";
+  const canvasId = `miniChart_${m.key}`;
 
-    grid.appendChild(col);
-  });
+  const userVal = Number(user[m.key]);
+  const avgVal = Number(avg[`avg_${m.key}`]) || 0;
+
+  createMiniChart(col, canvasId, m.label, userVal, avgVal);
+
+  grid.appendChild(col);
+});
+
+if (grid.children.length === 0) {
+  grid.innerHTML = "<p class='muted'>No comparison data available — you did not enter any financial values.</p>";
+}
+
 
   // fill details and health score
   fillDetailsAndScore(avg);
