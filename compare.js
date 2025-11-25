@@ -1,166 +1,203 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// ------------------------------------
-// Supabase client
-// ------------------------------------
-const supabase = createClient(
-  "https://hwuhzgkhnzvkevpqcarm.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3dWh6Z2tobnp2a2V2cHFjYXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4MjE1NTEsImV4cCI6MjA3OTM5NzU1MX0.vgFOJFN4DxXh98Mv7VmUwLW2BIkBaMctuoCbWOpyDVs"
-);
+// -------------------------
+// Config
+// -------------------------
+const SUPABASE_URL = "https://hwuhzgkhnzvkevpqcarm.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3dWh6Z2tobnp2a2V2cHFjYXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4MjE1NTEsImV4cCI6MjA3OTM5NzU1MX0.vgFOJFN4DxXh98Mv7VmUwLW2BIkBaMctuoCbWOpyDVs";
 
-// ------------------------------------
-// Metrics used in both the chart + summary
-// ------------------------------------
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Colors: Option 1 (Mint + Blue)
+const COLOR_USER = "#4ADE80"; // mint
+const COLOR_AVG = "#60A5FA";  // blue
+
+// Metrics
 const METRICS = [
-  { key: "salary", label: "Salary (£)" },
-  { key: "savings", label: "Savings (£)" },
-  { key: "debt", label: "Debt (£)" },
-  { key: "rent", label: "Rent (£)" },
-  { key: "mortgage", label: "Mortgage (£)" },
-  { key: "property_value", label: "Property Value (£)" }
+  { key: "salary", label: "Salary" },
+  { key: "savings", label: "Savings" },
+  { key: "debt", label: "Debt" },
+  { key: "rent", label: "Rent" },
+  { key: "mortgage", label: "Mortgage" },
+  { key: "property_value", label: "Property value" }
 ];
 
-// ------------------------------------
-// Load latest user submission
-// ------------------------------------
+// Load latest submission from localStorage
 const user = JSON.parse(localStorage.getItem("latest_submission"));
-
 if (!user) {
-  document.getElementById("results").innerHTML =
-    "<p>No data found. Please return to the form.</p>";
-  throw new Error("No submission found in localStorage");
+  document.getElementById("results").innerHTML = "<p>No recent submission found. Please submit the form first.</p>";
+  throw new Error("No latest_submission in localStorage");
 }
 
-// ------------------------------------
-// Fetch averages (RPC function)
-// ------------------------------------
+// RPC to get averages: get_finance_averages()
 async function fetchAverages() {
   const { data, error } = await supabase.rpc("get_finance_averages");
   if (error) throw error;
-
   return Array.isArray(data) ? data[0] : data;
 }
 
-// ------------------------------------
-// Create dot plot (inverted percentage axis)
-// ------------------------------------
-function createDotPlot(userValues, avgValues) {
-  const ctx = document.getElementById("dotPlotChart").getContext("2d");
+// Helper to create a single small bar chart for one metric
+function createMiniChart(containerEl, id, label, userValue, avgValue) {
+  // inject canvas
+  containerEl.innerHTML = `
+    <div class="mini-card">
+      <div class="mini-header">
+        <div class="mini-title">${label}</div>
+        <div class="mini-values"><span class="val-you">You: £${(userValue||0).toLocaleString()}</span> <span class="val-avg">Avg: £${(avgValue||0).toLocaleString()}</span></div>
+      </div>
+      <canvas id="${id}" class="mini-canvas" aria-label="${label} chart"></canvas>
+    </div>
+  `;
 
-  const labels = METRICS.map(m => m.label);
+  const ctx = containerEl.querySelector("canvas").getContext("2d");
 
-  // Convert to percentage of average
-  const userPercent = METRICS.map(m => {
-    const avg = avgValues[`avg_${m.key}`] || 1;
-    const user = userValues[m.key] || 0;
-    return {
-      x: m.label,
-      y: (user / avg) * 100
-    };
-  });
+  // determine max for y scale (give some headroom)
+  const max = Math.max(userValue || 0, avgValue || 0);
+  const suggestedMax = Math.max( (Math.ceil(max / 1000) * 1000) , max) * 1.15 || 1;
 
-  const avgPercent = METRICS.map(m => ({
-    x: m.label,
-    y: 100
-  }));
-
+  // Create bar chart with two bars (You, Avg)
   new Chart(ctx, {
-    type: "scatter",
+    type: "bar",
     data: {
-      labels,
-      datasets: [
-        {
-          label: "Average (100%)",
-          data: avgPercent,
-          pointRadius: 8,
-          pointBackgroundColor: "#D1D5DB",
-          pointHoverRadius: 10
-        },
-        {
-          label: "You",
-          data: userPercent,
-          pointRadius: 10,
-          pointBackgroundColor: "#F59E0B",
-          pointBorderWidth: 2,
-          pointBorderColor: "#B45309",
-          pointHoverRadius: 12
-        }
-      ]
+      labels: ["You", "Average"],
+      datasets: [{
+        label: label,
+        data: [userValue || 0, avgValue || 0],
+        backgroundColor: [COLOR_USER, COLOR_AVG],
+        borderRadius: 8,
+        barPercentage: 0.6,
+        categoryPercentage: 0.6
+      }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-
-      scales: {
-        x: {
-          type: "category",
-          labels,
-          title: { display: true, text: "Metric" },
-          grid: { display: false }
-        },
-
-        y: {
-          beginAtZero: false,
-
-          // ★ INVERTED PERCENT AXIS ★
-          reverse: true,
-
-          title: { display: true, text: "% of Average (Inverted)" },
-
-          ticks: {
-            callback: v => v + "%"
-          },
-
-          // Sensible range: 0% → 200%
-          suggestedMin: 200,
-          suggestedMax: 0
-        }
-      },
-
+      animation: { duration: 700 },
       plugins: {
-        legend: { display: true },
-
+        legend: { display: false },
         tooltip: {
           callbacks: {
-            label: ctx =>
-              `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%`
+            label: ctx => `${ctx.label}: £${Number(ctx.raw).toLocaleString()}`
           }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { display: false } // hide X ticks to mimic small cards
+        },
+        y: {
+          beginAtZero: true,
+          suggestedMax,
+          ticks: {
+            callback: v => (v >= 1000 ? "£" + (v/1000) + "k" : "£" + v)
+          },
+          grid: { color: "#EEF2FF" }
         }
       }
     }
   });
 }
 
-// ------------------------------------
-// Main render flow
-// ------------------------------------
-async function render() {
+// Build the grid of six mini-charts
+async function buildCharts() {
   const avg = await fetchAverages();
 
-  const userVals = {};
-  const avgVals = {};
+  const grid = document.getElementById("chartsGrid");
+  grid.innerHTML = ""; // clear
 
-  METRICS.forEach(m => {
-    userVals[m.key] = Number(user[m.key]) || 0;
-    avgVals[`avg_${m.key}`] = Number(avg[`avg_${m.key}`]) || 0;
+  METRICS.forEach((m, i) => {
+    // container for each mini card
+    const col = document.createElement("div");
+    col.className = "chart-cell";
+    const canvasId = `miniChart_${m.key}`;
+
+    const userVal = Number(user[m.key]) || 0;
+    const avgVal = Number(avg[`avg_${m.key}`]) || 0;
+
+    // create the chart in this cell
+    createMiniChart(col, canvasId, m.label, userVal, avgVal);
+
+    grid.appendChild(col);
   });
 
-  // Render chart
-  createDotPlot(userVals, avgVals);
+  // fill details and health score
+  fillDetailsAndScore(avg);
+  prepareShare(avg);
+}
 
-  // Summary results
+// Fill the details text and compute a simple health score
+function fillDetailsAndScore(avg) {
   const resultsBox = document.getElementById("results");
   resultsBox.innerHTML = METRICS.map(m => `
-      <p><strong>${m.label}:</strong> 
-        You: £${userVals[m.key].toLocaleString()} — 
-        Avg: £${avgVals[`avg_${m.key}`].toLocaleString()}
-      </p>
+      <p><strong>${m.label}:</strong> You: £${(Number(user[m.key])||0).toLocaleString()} — Avg: £${(Number(avg[`avg_${m.key}`])||0).toLocaleString()}</p>
   `).join("");
 
-  // Back button
-  document.getElementById("backButton").onclick = () => {
-    window.location.href = "index.html";
+  // Simple weighted health score example
+  const weights = { salary: 0.3, savings: 0.2, debt: 0.2, mortgage: 0.1, rent: 0.1, property_value: 0.1 };
+  let sum = 0, totalW = 0;
+  METRICS.forEach(m => {
+    const u = Number(user[m.key]) || 0;
+    const a = Number(avg[`avg_${m.key}`]) || 0;
+    if (a > 0) {
+      let pct = (u / a) * 100;
+      // For debt/mortgage/rent lower is better -> invert
+      if (["debt","mortgage","rent"].includes(m.key)) pct = 200 - pct; // rough invert so lower debt gives higher score
+      const w = weights[m.key] || 0.1;
+      sum += Math.max(0, Math.min(200, pct)) * w;
+      totalW += w;
+    }
+  });
+  const health = totalW ? Math.round(sum / totalW) : null;
+  const healthBox = document.getElementById("healthScore");
+  const healthText = document.getElementById("healthText");
+  healthBox.textContent = health ? `${health}/100` : "—";
+  healthText.textContent = health ? (health >= 70 ? "You're above the average overall." : health >= 45 ? "Close to average — some room to improve." : "Below average — consider reviewing budgets.") : "";
+}
+
+// Share summary
+function prepareShare(avg) {
+  const shareTextEl = document.getElementById("shareText");
+  const copyBtn = document.getElementById("copyBtn");
+  const nativeShareBtn = document.getElementById("nativeShareBtn");
+
+  const lines = METRICS.map(m => {
+    const u = Number(user[m.key]) || 0;
+    const a = Math.round(Number(avg[`avg_${m.key}`])||0);
+    return `${m.label}: You £${u.toLocaleString()} • Avg £${a.toLocaleString()}`;
+  });
+
+  const txt = `My financial comparison\n\n${lines.join("\n")}\n\nCompare yours at [your-site]`;
+  shareTextEl.textContent = txt;
+
+  copyBtn.onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(txt);
+      copyBtn.textContent = "Copied!";
+      setTimeout(()=> copyBtn.textContent = "Copy", 1400);
+    } catch (e) {
+      alert("Copy failed — please copy manually.");
+    }
+  };
+
+  nativeShareBtn.onclick = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "My Financial Comparison", text: txt, url: window.location.href });
+      } catch (e) { /* ignore cancel */ }
+    } else {
+      alert("Share not supported — use Copy instead.");
+    }
   };
 }
 
-render();
+// Back button
+document.getElementById("backButton").onclick = () => {
+  window.location.href = "index.html";
+};
+
+// Initialize
+buildCharts().catch(err => {
+  console.error("Failed to build charts", err);
+  document.getElementById("results").innerHTML = "<p>Error loading comparison — check console.</p>";
+});

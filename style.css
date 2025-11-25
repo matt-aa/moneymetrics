@@ -119,3 +119,64 @@ body {
   .health-score { font-size: 22px; }
   #dotPlotChart { height: 280px !important; }
 }
+/* Container + base */
+.container { max-width: 980px; margin: 28px auto; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 8px 30px rgba(16,24,40,0.06); font-family: Inter, Arial, sans-serif; color: #1f2937; }
+.top h1 { margin: 0 0 6px 0; font-size: 20px }
+.muted { color:#6b7280; font-size:14px; }
+
+/* Cards */
+.card { background:#fff; border-radius:10px; padding:14px; margin-bottom:16px; box-shadow: 0 1px 0 rgba(0,0,0,0.04); }
+
+/* Summary */
+.health-score { font-size: 28px; font-weight: 700; margin-top: 6px }
+
+/* Grid of mini charts */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+/* Each chart cell */
+.chart-cell { display: block; }
+
+/* mini card (each metric) */
+.mini-card {
+  background: linear-gradient(180deg,#ffffff,#fbfcfe);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 6px 18px rgba(16,24,40,0.04);
+  height: 220px;           /* fixed height so canvases are consistent */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* header inside mini card */
+.mini-header { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; }
+.mini-title { font-weight:600; font-size:15px; }
+.mini-values { font-size:13px; color:#6b7280; display:flex; gap:8px; align-items:center; }
+
+/* canvas sizing */
+.mini-canvas { width:100% !important; height:120px !important; }
+
+/* share card */
+.share-card { display:flex; flex-direction:column; gap:8px; }
+.share-text { background:#f8fafc; padding:10px; border-radius:8px; font-family:monospace; white-space:pre-wrap; }
+
+/* buttons */
+.share-actions { display:flex; gap:10px; }
+button { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; }
+#copyBtn, #nativeShareBtn { background:#0f172a; color:#fff; }
+#backButton { margin-top:10px; background:#fff; border:1px solid #e5e7eb; color:#111827; }
+
+/* small details */
+.detail-grid { margin-top:6px; }
+.detail-grid p { margin:6px 0; color:#374151; }
+
+/* responsive tweaks */
+@media (max-width:640px) {
+  .mini-card { height:200px; padding:10px; }
+  .mini-canvas { height:110px !important; }
+  .container { padding:16px; }
+}
