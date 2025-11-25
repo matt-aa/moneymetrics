@@ -30,13 +30,23 @@ async function fetchAverages() {
   return Array.isArray(data) ? data[0] : data;
 }
 
-// Render dot plot
-ffunction createDotPlot(userValues, avgValues) {
+// -------------------------------
+// FIXED DOT PLOT (metrics on X, values on Y)
+// -------------------------------
+function createDotPlot(userValues, avgValues) {
   const ctx = document.getElementById("dotPlotChart").getContext("2d");
 
   const labels = METRICS.map(m => m.label);
-  const userData = METRICS.map((m, i) => ({ x: m.label, y: userValues[m.key] }));
-  const avgData = METRICS.map((m, i) => ({ x: m.label, y: avgValues[`avg_${m.key}`] }));
+
+  const userData = METRICS.map(m => ({
+    x: m.label,
+    y: userValues[m.key]
+  }));
+
+  const avgData = METRICS.map(m => ({
+    x: m.label,
+    y: avgValues[`avg_${m.key}`]
+  }));
 
   new Chart(ctx, {
     type: "scatter",
@@ -48,8 +58,7 @@ ffunction createDotPlot(userValues, avgValues) {
           data: avgData,
           pointRadius: 8,
           pointBackgroundColor: "#D1D5DB", // grey
-          pointHoverRadius: 10,
-          showLine: false
+          pointHoverRadius: 10
         },
         {
           label: "You",
@@ -58,33 +67,34 @@ ffunction createDotPlot(userValues, avgValues) {
           pointBackgroundColor: "#F59E0B", // orange
           pointBorderWidth: 2,
           pointBorderColor: "#B45309",
-          pointHoverRadius: 12,
-          showLine: false
+          pointHoverRadius: 12
         }
       ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-
       scales: {
         x: {
           type: "category",
           labels,
-          title: { display: true, text: "Metric" },
+          title: {
+            display: true,
+            text: "Metric"
+          },
           grid: { display: false }
         },
         y: {
-          type: "linear",
           beginAtZero: true,
-          title: { display: true, text: "Value (£)" },
+          title: {
+            display: true,
+            text: "Value (£)"
+          },
           ticks: {
             callback: v => "£" + v.toLocaleString()
-          },
-          grid: { color: "#E5E7EB" }
+          }
         }
       },
-
       plugins: {
         legend: { display: true },
         tooltip: {
@@ -98,42 +108,9 @@ ffunction createDotPlot(userValues, avgValues) {
   });
 }
 
-
-  new Chart(ctx, {
-    type: "scatter",
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: {
-          title: { display: true, text: "Value (£)" },
-          ticks: {
-            callback: v => "£" + v.toLocaleString()
-          },
-          grid: {
-            color: "#F3F4F6"
-          }
-        },
-        y: {
-          type: "category",
-          labels,
-          offset: true,
-          grid: { display: false }
-        }
-      },
-      plugins: {
-        legend: { display: true },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => `${ctx.dataset.label}: £${ctx.parsed.x.toLocaleString()}`
-          }
-        }
-      }
-    }
-  });
-}
-
+// -------------------------------
+// Render the page
+// -------------------------------
 async function render() {
   const avg = await fetchAverages();
 
@@ -147,7 +124,7 @@ async function render() {
 
   createDotPlot(userVals, avgVals);
 
-  // Summary numbers under chart
+  // Summary numbers
   const resultsBox = document.getElementById("results");
   resultsBox.innerHTML = METRICS.map(m => `
       <p><strong>${m.label}:</strong> You: £${userVals[m.key].toLocaleString()} —
