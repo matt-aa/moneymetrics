@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -13,21 +13,30 @@
       <p class="muted">Compare your numbers with the average of other submissions</p>
     </header>
 
+    <!-- Summary -->
     <section class="card summary-card">
       <h2>Summary</h2>
       <div id="healthScore" class="health-score">—</div>
       <p id="healthText" class="muted"></p>
     </section>
 
+    <!-- Dashboard Mini Charts -->
     <section class="card charts-grid" id="chartsGrid">
-      <!-- Six chart cards are injected here by compare.js -->
+      <!-- Injected by compare.js -->
     </section>
 
-    <section id="details" class="card">
+    <!-- Detailed Breakdown Table -->
+    <section class="card breakdown-table-card" id="breakdownTableContainer">
+      <!-- Injected by compare.js -->
+    </section>
+
+    <!-- Details -->
+    <section class="card" id="details">
       <h2>Details</h2>
       <div id="results"></div>
     </section>
 
+    <!-- Share -->
     <section class="card share-card">
       <h2>Share Your Results</h2>
       <pre id="shareText" class="share-text"></pre>
@@ -37,6 +46,7 @@
       </div>
     </section>
 
+    <!-- Back -->
     <div class="actions">
       <button id="backButton" class="back-btn">← Back to form</button>
     </div>
@@ -45,7 +55,8 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Compare logic -->
+  <!-- Compare Logic -->
   <script type="module" src="compare.js"></script>
 </body>
 </html>
+
