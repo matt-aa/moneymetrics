@@ -1,11 +1,16 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// ------------------------------------
+// Supabase client
+// ------------------------------------
 const supabase = createClient(
   "https://hwuhzgkhnzvkevpqcarm.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3dWh6Z2tobnp2a2V2cHFjYXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4MjE1NTEsImV4cCI6MjA3OTM5NzU1MX0.vgFOJFN4DxXh98Mv7VmUwLW2BIkBaMctuoCbWOpyDVs"
 );
 
-// Chart rows
+// ------------------------------------
+// Metrics used in both the chart + summary
+// ------------------------------------
 const METRICS = [
   { key: "salary", label: "Salary (£)" },
   { key: "savings", label: "Savings (£)" },
@@ -15,41 +20,48 @@ const METRICS = [
   { key: "property_value", label: "Property Value (£)" }
 ];
 
-// Load user
+// ------------------------------------
+// Load latest user submission
+// ------------------------------------
 const user = JSON.parse(localStorage.getItem("latest_submission"));
 
 if (!user) {
-  document.getElementById("results").innerHTML = "<p>No data found. Please return to the form.</p>";
-  throw new Error("No submission");
+  document.getElementById("results").innerHTML =
+    "<p>No data found. Please return to the form.</p>";
+  throw new Error("No submission found in localStorage");
 }
 
-// Fetch averages via RPC
+// ------------------------------------
+// Fetch averages (RPC function)
+// ------------------------------------
 async function fetchAverages() {
   const { data, error } = await supabase.rpc("get_finance_averages");
   if (error) throw error;
+
   return Array.isArray(data) ? data[0] : data;
 }
 
-// -------------------------------
-// FIXED DOT PLOT (metrics on X, values on Y)
-// -------------------------------
+// ------------------------------------
+// Create dot plot (inverted percentage axis)
+// ------------------------------------
 function createDotPlot(userValues, avgValues) {
   const ctx = document.getElementById("dotPlotChart").getContext("2d");
 
   const labels = METRICS.map(m => m.label);
 
+  // Convert to percentage of average
   const userPercent = METRICS.map(m => {
     const avg = avgValues[`avg_${m.key}`] || 1;
     const user = userValues[m.key] || 0;
     return {
       x: m.label,
-      y: (user / avg) * 100   // percentage of average
+      y: (user / avg) * 100
     };
   });
 
   const avgPercent = METRICS.map(m => ({
     x: m.label,
-    y: 100    // always 100% for averages
+    y: 100
   }));
 
   new Chart(ctx, {
@@ -90,7 +102,7 @@ function createDotPlot(userValues, avgValues) {
         y: {
           beginAtZero: false,
 
-          /** ★★★ INVERTED AXIS ★★★ **/
+          // ★ INVERTED PERCENT AXIS ★
           reverse: true,
 
           title: { display: true, text: "% of Average (Inverted)" },
@@ -99,7 +111,7 @@ function createDotPlot(userValues, avgValues) {
             callback: v => v + "%"
           },
 
-          /** Suggest a useful range **/
+          // Sensible range: 0% → 200%
           suggestedMin: 200,
           suggestedMax: 0
         }
@@ -110,7 +122,8 @@ function createDotPlot(userValues, avgValues) {
 
         tooltip: {
           callbacks: {
-            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%`
+            label: ctx =>
+              `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%`
           }
         }
       }
@@ -118,14 +131,33 @@ function createDotPlot(userValues, avgValues) {
   });
 }
 
+// ------------------------------------
+// Main render flow
+// ------------------------------------
+async function render() {
+  const avg = await fetchAverages();
 
-  // Summary numbers
+  const userVals = {};
+  const avgVals = {};
+
+  METRICS.forEach(m => {
+    userVals[m.key] = Number(user[m.key]) || 0;
+    avgVals[`avg_${m.key}`] = Number(avg[`avg_${m.key}`]) || 0;
+  });
+
+  // Render chart
+  createDotPlot(userVals, avgVals);
+
+  // Summary results
   const resultsBox = document.getElementById("results");
   resultsBox.innerHTML = METRICS.map(m => `
-      <p><strong>${m.label}:</strong> You: £${userVals[m.key].toLocaleString()} —
-      Avg: £${avgVals[`avg_${m.key}`].toLocaleString()}</p>
+      <p><strong>${m.label}:</strong> 
+        You: £${userVals[m.key].toLocaleString()} — 
+        Avg: £${avgVals[`avg_${m.key}`].toLocaleString()}
+      </p>
   `).join("");
 
+  // Back button
   document.getElementById("backButton").onclick = () => {
     window.location.href = "index.html";
   };
