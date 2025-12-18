@@ -9,14 +9,12 @@ const supabase = createClient(
 const form = document.getElementById("financeForm");
 const message = document.getElementById("message");
 
-// Safely convert inputs to numbers
 function toNumber(value) {
   if (!value) return null;
   const n = Number(String(value).replace(/[^0-9.-]/g, ""));
   return isNaN(n) ? null : n;
 }
 
-// Handle form submission
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   message.textContent = "Saving...";
@@ -31,8 +29,7 @@ form.addEventListener("submit", async (e) => {
     savings: toNumber(data.get("savings")),
     debt: toNumber(data.get("debt")),
     mortgage_or_rent_monthly: toNumber(data.get("mortgage_or_rent_monthly")),
-    property_value: toNumber(data.get("property_value")),
-    additional_notes: data.get("additional_notes") || null
+    property_value: toNumber(data.get("property_value"))
   };
 
   const { error } = await supabase
@@ -40,7 +37,6 @@ form.addEventListener("submit", async (e) => {
     .insert([payload]);
 
   if (error) {
-    console.error(error);
     message.textContent = "Error: " + error.message;
     message.className = "ms-3 text-danger";
   } else {
