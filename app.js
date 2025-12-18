@@ -11,14 +11,31 @@ const message = document.getElementById("message");
 const rentInput = document.getElementById("rent");
 const mortgageInput = document.getElementById("mortgage");
 
-// Allow only ONE of rent or mortgage
-rentInput.addEventListener("input", () => {
-  mortgageInput.disabled = rentInput.value !== "";
-});
+/**
+ * Enforce that ONLY one of rent or mortgage can be filled
+ */
+function enforceHousingRule() {
+  const rentFilled = rentInput.value.trim() !== "";
+  const mortgageFilled = mortgageInput.value.trim() !== "";
 
-mortgageInput.addEventListener("input", () => {
-  rentInput.disabled = mortgageInput.value !== "";
-});
+  // If rent has value → disable mortgage
+  mortgageInput.disabled = rentFilled;
+
+  // If mortgage has value → disable rent
+  rentInput.disabled = mortgageFilled;
+
+  // If both are empty → enable both
+  if (!rentFilled && !mortgageFilled) {
+    rentInput.disabled = false;
+    mortgageInput.disabled = false;
+  }
+}
+
+// Run on every change AND blur (covers all cases)
+rentInput.addEventListener("input", enforceHousingRule);
+mortgageInput.addEventListener("input", enforceHousingRule);
+rentInput.addEventListener("blur", enforceHousingRule);
+mortgageInput.addEventListener("blur", enforceHousingRule);
 
 function toNumber(v) {
   if (!v) return null;
@@ -28,6 +45,17 @@ function toNumber(v) {
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
+
+  // Final safety check before submit
+  if (
+    rentInput.value.trim() !== "" &&
+    mortgageInput.value.trim() !== ""
+  ) {
+    message.textContent = "Please enter rent OR mortgage, not both.";
+    message.className = "ms-3 text-danger";
+    return;
+  }
+
   message.textContent = "Saving...";
   message.className = "ms-3 text-muted";
 
