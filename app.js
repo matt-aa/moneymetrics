@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// Your Supabase details
+// Supabase connection
 const supabase = createClient(
   "https://hwuhzgkhnzvkevpqcarm.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3dWh6Z2tobnp2a2V2cHFjYXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4MjE1NTEsImV4cCI6MjA3OTM5NzU1MX0.vgFOJFN4DxXh98Mv7VmUwLW2BIkBaMctuoCbWOpyDVs"
@@ -8,10 +8,21 @@ const supabase = createClient(
 
 const form = document.getElementById("financeForm");
 const message = document.getElementById("message");
+const rentInput = document.getElementById("rent");
+const mortgageInput = document.getElementById("mortgage");
 
-function toNumber(value) {
-  if (!value) return null;
-  const n = Number(String(value).replace(/[^0-9.-]/g, ""));
+// Allow only ONE of rent or mortgage
+rentInput.addEventListener("input", () => {
+  mortgageInput.disabled = rentInput.value !== "";
+});
+
+mortgageInput.addEventListener("input", () => {
+  rentInput.disabled = mortgageInput.value !== "";
+});
+
+function toNumber(v) {
+  if (!v) return null;
+  const n = Number(String(v).replace(/[^0-9.-]/g, ""));
   return isNaN(n) ? null : n;
 }
 
@@ -28,7 +39,8 @@ form.addEventListener("submit", async (e) => {
     salary: toNumber(data.get("salary")),
     savings: toNumber(data.get("savings")),
     debt: toNumber(data.get("debt")),
-    mortgage_or_rent_monthly: toNumber(data.get("mortgage_or_rent_monthly")),
+    rent_monthly: toNumber(data.get("rent_monthly")),
+    mortgage_monthly: toNumber(data.get("mortgage_monthly")),
     property_value: toNumber(data.get("property_value"))
   };
 
@@ -43,5 +55,7 @@ form.addEventListener("submit", async (e) => {
     message.textContent = "Submitted successfully!";
     message.className = "ms-3 text-success";
     form.reset();
+    rentInput.disabled = false;
+    mortgageInput.disabled = false;
   }
 });
