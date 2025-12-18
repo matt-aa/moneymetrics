@@ -9,38 +9,43 @@ const supabase = createClient(
 const form = document.getElementById("financeForm");
 const message = document.getElementById("message");
 
+// Safely convert inputs to numbers
+function toNumber(value) {
+  if (!value) return null;
+  const n = Number(String(value).replace(/[^0-9.-]/g, ""));
+  return isNaN(n) ? null : n;
+}
+
+// Handle form submission
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
+  message.textContent = "Saving...";
+  message.className = "ms-3 text-muted";
 
-  const formData = Object.fromEntries(new FormData(form));
+  const data = new FormData(form);
 
-  // Convert numeric fields
-  const numericFields = [
-    "salary",
-    "savings",
-    "debt",
-    "mortgage",
-    "rent",
-    "property_value"
-  ];
+  const payload = {
+    age_range: data.get("age_range"),
+    postcode: data.get("postcode").trim().toUpperCase(),
+    salary: toNumber(data.get("salary")),
+    savings: toNumber(data.get("savings")),
+    debt: toNumber(data.get("debt")),
+    mortgage_or_rent_monthly: toNumber(data.get("mortgage_or_rent_monthly")),
+    property_value: toNumber(data.get("property_value")),
+    additional_notes: data.get("additional_notes") || null
+  };
 
-  numericFields.forEach(field => {
-    formData[field] = formData[field] ? Number(formData[field]) : null;
-  });
-
-  formData.created_at = new Date().toISOString();
-
-  // Insert into Supabase
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("young_people_finances")
-    .insert([formData]);
+    .insert([payload]);
 
   if (error) {
-  console.error(error);
-  message.textContent = "❌ Something went wrong — see console.";
-  message.style.color = "red";
-} else {
-  localStorage.setItem("latest_submission", JSON.stringify(formData));
-  window.location.href = "compare.html";
-}
+    console.error(error);
+    message.textContent = "Error: " + error.message;
+    message.className = "ms-3 text-danger";
+  } else {
+    message.textContent = "Submitted successfully!";
+    message.className = "ms-3 text-success";
+    form.reset();
+  }
 });
